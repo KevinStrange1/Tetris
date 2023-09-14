@@ -114,6 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function moveRigth() {
+        if (gameIsOver) return;
         undraw();
         const isAtRightEdge = current.some(index => (currentPosition + index) % width === width - 1);
         if (!isAtRightEdge) currentPosition += 1;
@@ -124,6 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function moveLeft() {
+        if (gameIsOver) return;
         undraw();
         const isAtLeftEdge = current.some(index => (currentPosition + index) % width === 0);
         if (!isAtLeftEdge) currentPosition -= 1;
@@ -134,6 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function rotate() {
+        if (gameIsOver) return;
         undraw();
         currentRotation ++;
         if (currentRotation === current.length) {
