@@ -5,7 +5,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const grid = createGrid()
     let squares = Array.from(grid.querySelectorAll('div'));
-    const startBtn = document.querySelector('button');
+    const startBtn = document.querySelector('#start-button');
+    const pauseBtn = document.querySelector('#pause-button');
+    const stopBtn = document.querySelector('#stop-button');
     const scoreDisplay = document.querySelector('.score-display');
     const linesDisplay = document.querySelector('.lines-display');
     const displaySquares = document.querySelectorAll('.previous-grid div');
@@ -16,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let score = 0;
     let lines = 0;
     let nextRandom = 0;
+    let gameIsOver = false;
 
     function createGrid() {
         let grid = document.querySelector('.grid');
@@ -103,6 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function moveDown() {
+        if (gameIsOver) return;
         undraw();
         currentPosition = currentPosition += width;
         draw();
@@ -177,26 +181,76 @@ document.addEventListener('DOMContentLoaded', () => {
     freeze();
 
     startBtn.addEventListener('click', () => {
+        if (startBtn.textContent === "Start") {
+            draw();
+            timerId = setInterval(moveDown, 1000);
+            nextRandom = Math.floor(Math.random() * theTetrominoes.length);
+            displayShape();
+            startBtn.textContent = "Reset";
+        } else if (startBtn.textContent === "Reset") {
+            clearInterval(timerId);
+            score = 0;
+            lines = 0;
+            scoreDisplay.innerHTML = 0;
+            linesDisplay.innerHTML = 0;
+            squares.forEach(square => {
+                square.classList.remove('block2');
+                square.classList.remove('block');
+            });
+
+            currentPosition = 4;
+            currentIndex = 0;
+            currentRotation= 0;
+            random = Math.floor(Math.random() * theTetrominoes.length);
+            current = theTetrominoes[random][currentRotation];
+    
+            draw();
+            timerId = setInterval(moveDown, 1000);
+            nextRandom = Math.floor(Math.random() * theTetrominoes.length);
+            displayShape();
+        }
+    });
+    
+
+    pauseBtn.addEventListener('click', () => {
         if (timerId) {
             clearInterval(timerId);
             timerId = null;
-        } else {
-            draw();
+        } else if (!gameIsOver) {
             timerId = setInterval(moveDown, 1000);
-            nextRandom = Math.floor(Math.random()* theTetrominoes.length);
-            displayShape();
         }
-    })
+    });
+
+    stopBtn.addEventListener('click', () => {
+        clearInterval(timerId);
+        timerId = null;
+        startBtn.textContent = "Start";
+        score = 0;
+        lines = 0;
+        scoreDisplay.innerHTML = 0;
+        linesDisplay.innerHTML = 0;
+        squares.forEach(square => {
+            square.classList.remove('block2');
+            square.classList.remove('block');
+        });
+        currentPosition = 4;
+        currentIndex = 0;
+        currentRotation= 0;
+        random = Math.floor(Math.random() * theTetrominoes.length);
+        current = theTetrominoes[random][currentRotation];
+    });
+    
 
     function gameOver() {
         if (current.some(index => squares[currentPosition + index].classList.contains('block2'))) {
             scoreDisplay.innerHTML = 'End';
             clearInterval(timerId);
+            gameIsOver = true;
         }
     }
 
     function addScore() {
-        for (currentIndex = 0; currentIndex < 199; currentIndex += width) {
+        for (currentIndex = 0; currentIndex < squares.length - width; currentIndex += width) { //check this?
             const row = [currentIndex, currentIndex + 1, currentIndex + 2, currentIndex + 3, currentIndex + 4, currentIndex + 5, currentIndex + 6, currentIndex + 7, currentIndex + 8, currentIndex + 9];
             if (row.every(index => squares[index].classList.contains('block2'))) {
                 score += 10;
@@ -208,6 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
                 const squaresRemoved = squares.splice(currentIndex, width);
                 squares = squaresRemoved.concat(squares);
+                grid.innerHTML = ''; // make sure this works?
                 squares.forEach(cell => grid.appendChild(cell));
             }
         }
